@@ -1,0 +1,92 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "Amin Saeedi",
+      "username": "01010101",
+      "email": "test@gmail.com",
+      "crime": 0,
+      "role": "ADMIN"
+    },
+    {
+      "id": 2,
+      "name": "Mohammad",
+      "username": "engrmh",
+      "email": "mohammad@gmail.com",
+      "crime": 0,
+      "role": "ADMIN"
+    },
+    {
+      "id": 3,
+      "name": "Ehsan Mmdi",
+      "username": "ehs",
+      "email": "test@gmail.com",
+      "crime": 140000,
+      "role": "ADMIN"
+    },
+    {
+      "id": "ad74d8f6-3e15-44ac-841b-9437e87bb913",
+      "name": "ali",
+      "username": "ali_mmdi",
+      "email": "ali@gmail.com",
+      "crime": 0,
+      "role": "USER"
+    },
+    {
+      "id": "fc9b7cd0-173c-4f5f-9bc8-ec9c062d7379",
+      "name": "mohammad",
+      "username": "mmd_salahi",
+      "email": "mmd@gmail.com",
+      "crime": 0,
+      "role": "USER"
+    },
+    {
+      "id": "bdc05b63-b372-4d56-9c30-27cade478ec6",
+      "name": "amin",
+      "username": "amin777",
+      "email": "amin@gmail.com",
+      "crime": 0,
+      "role": "USER"
+    },
+    {
+      "id": "5b8d9ff3-6cef-4d48-a619-89a5775b5ad3",
+      "name": "ali reza",
+      "username": "aminamin",
+      "email": "amin@mail.com",
+      "crime": 0,
+      "role": "USER"
+    }
+  ],
+  "books": [
+    {
+      "id": 1,
+      "title": "Golestan",
+      "author": "Sadi Shirazi",
+      "price": 2330000,
+      "free": 0
+    },
+    {
+      "id": 2,
+      "title": "Nodejs Book",
+      "author": "Person 1",
+      "price": 200000,
+      "free": 0
+    },
+    {
+      "id": "30081d9b-84ad-46bc-a884-f4ef9820ec35",
+      "title": "MarzbanName",
+      "author": "KeiKavous ebn eskandar",
+      "price": 2380000,
+      "free": 1
+    }
+  ],
+  "rents": [
+    { "id": 1, "userID": 1, "bookID": 1 },
+    {
+      "id": "8055d5dd-81c8-4d81-8853-89d9f07c7dad",
+      "userID": "fc9b7cd0-173c-4f5f-9bc8-ec9c062d7379",
+      "bookID": 2
+    },
+    { "id": "a8acba2e-4ce6-4b94-b0d8-a08c2c2d3891", "userID": 2, "bookID": 1 }
+  ]
+}

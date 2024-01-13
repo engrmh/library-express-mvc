@@ -1,0 +1,7 @@
+User (Entity)
+    1. User -> Register ✅, Login ✅, Reserve ✅, Tahvil ✅, GetAllBook ✅
+    2. Admin -> Crime ✅, MakeAdmin ✅, AddBook ✅, removeBook ✅, EditBook ✅, GetAllBook ✅, GetAllUsers ✅
+
+
+Book 
+    AddBook ✅, removeBook ✅, EditBook ✅
