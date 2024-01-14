@@ -2,10 +2,10 @@ const http = require("http");
 const fs = require("fs");
 const url = require("url");
 const db = require("./db.json");
+require("dotenv").config()
 const bookController = require("./controllers/bookController");
 const userController = require("./controllers/userController");
 const rentController = require("./controllers/rentController");
-
 const server = http.createServer((req, res) => {
   if (req.method === "GET" && req.url === "/api/users") {
     fs.readFile("db.json", (err, db) => {
@@ -42,6 +42,6 @@ const server = http.createServer((req, res) => {
   }
 });
 
-server.listen(4000, () => {
-  console.log("Server Rinning On Port 4000");
+server.listen(process.env.PORT, () => {
+  console.log(`Server Rinning On Port ${process.env.PORT}`);
 });
