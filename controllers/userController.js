@@ -1,113 +1,126 @@
-const UserModel = require("../models/User");
-const crypto = require("crypto");
-const url = require("url");
+const mongoose = require("mongoose");
+const { isValidObjectId } = require("mongoose");
+const usersModel = require("../models/users");
+const registerValidator = require("../Validators/register");
 
-const addOne = async (req, res) => {
-  let user = "";
+exports.getAll = async (req, res) => {
+  try {
+    const users = await usersModel.find({}).lean();
+    res.status(200).json({ message: "OK", data: users });
+  } catch (err) {
+    res.status(500).json("Server Error");
+  }
+};
 
-  req.on("data", (data) => {
-    user = user + data.toString();
-  });
-
-  req.on("end", async () => {
-    const { name, username, email } = JSON.parse(user);
-
-    const allUsers = await UserModel.getAll();
-    const isUserExist = allUsers.find(
-      (user) => user.email === email || user.username === username
-    );
-    if (name === "" || username === "" || email === "") {
-      res.writeHead(422, { "Content-Type": "application/json" });
-      res.write(JSON.stringify({ message: "User data are not valid" }));
-      res.end();
-    } else if (isUserExist) {
-      res.writeHead(409, { "Content-Type": "application/json" });
-      res.write(
-        JSON.stringify({ message: "email or username already is exist" })
-      );
-      res.end();
-    } else {
-      const newUser = {
-        id: crypto.randomUUID(),
-        name,
-        username,
-        email,
-        crime: 0,
-        role: "USER",
-      };
-
-      const addNewUser = await UserModel.add(newUser);
-      res.writeHead(201, { "Content-Type": "application/json" });
-      res.write(JSON.stringify(addNewUser));
-      res.end();
+exports.removeOne = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const isValidId = isValidObjectId(id);
+    if (!isValidId) {
+      return res.status(400).json("Invalid ID");
     }
-  });
+
+    const removeUser = usersModel.deleteOne({ _id: id });
+    if (!removeUser) {
+      return res.status(404).json("User not found");
+    }
+
+    res.status(200).json("User deleted successfully");
+  } catch (err) {
+    res.status(500).json("Server Error");
+  }
 };
 
-const upgradeUser = async (req, res) => {
-  const parsedUrl = url.parse(req.url, true);
-  const userID = parsedUrl.query.id;
+exports.getOneUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const isValidId = isValidObjectId(id);
+    if (!isValidId) {
+      return res.status(400).json("Invalid ID");
+    }
+    const getOneUser = await usersModel.findOne({ _id: id });
 
-  const upgradingUser = await UserModel.upgrade(userID);
+    if (!getOneUser) {
+      return res.status(404).json("User not found");
+    }
 
-  res.writeHead(200, { "Content-Type": "application/json" });
-  res.write(JSON.stringify(upgradingUser));
-  res.end();
+    res.status(200).json(getOneUser);
+  } catch (err) {
+    res.status(500).json("Server Error");
+  }
 };
 
-const crimingUser = async (req, res) => {
-  const parsedUrl = url.parse(req.url, true);
-  const userID = parsedUrl.query.id;
-  let reqBody = "";
+exports.upgradeUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const isValidID = isValidObjectId(id);
 
-  req.on("data", (data) => {
-    reqBody = reqBody + data.toString();
-  });
+    if (!isValidID) {
+      return req.status(400).json("Invalid ID");
+    }
 
-  req.on("end", async () => {
-    const { crime } = JSON.parse(reqBody);
-
-    const crimeUser = await UserModel.crime(userID, crime);
-
-    res.writeHead(200, { "Content-Type": "application/json" });
-    res.write(JSON.stringify(crimeUser));
-    res.end();
-  });
-};
-
-const login = async (req, res) => {
-  let user = "";
-
-  req.on("data", (data) => {
-    user = user + data.toString();
-  });
-
-  req.on("end", async () => {
-    const { username, email } = JSON.parse(user);
-
-    const allUsers = await UserModel.getAll();
-
-    const mainUser = allUsers.find(
-      (user) => user.username === username && user.email === email
+    const upgradeUser = await usersModel.updateOne(
+      { _id: id },
+      { $set: { role: "ADMIN" } }
     );
 
-    if (mainUser) {
-      res.writeHead(200, { "Content-Type": "application/json" });
-      res.write(
-        JSON.stringify({ username: mainUser.username, email: mainUser.email })
-      );
-      res.end();
-    } else {
-      res.writeHead(401, { "Content-Type": "application/json" });
-      res.write(JSON.stringify({ message: "User Not Found" }));
-      res.end();
+    if (!upgradeUser) {
+      return res.status(404).json("User not found");
     }
-  });
+
+    res.status(200).json(upgradeUser);
+  } catch (err) {
+    res.status(500).json("Server Error");
+  }
 };
 
-module.exports = {
-  addOne,
-  upgradeUser,
-  crimingUser,
-  login,
+exports.crimingUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { crimeValue } = req.body;
+    const isValidId = isValidObjectId(id);
+    if (!isValidId) {
+      return res.status(400).json("Invalid ID");
+    }
+
+    const crimingUser = await usersModel.updateOne(
+      { _id: id },
+      { $set: { crime: +crimeValue } }
+    );
+
+    if (!crimingUser) {
+      return res.status(404).json("User not found");
+    }
+
+    res.status(200).json("Criming Successfully");
+  } catch (err) {
+    res.status(500).json("Server Error");
+  }
+};
+
+exports.register = async (req, res) => {
+  try {
+    const isValidRegisterData = registerValidator(req.body);
+
+    if (!isValidRegisterData) {
+      res.status(400).json("Invalid Data");
+    }
+
+    const { name, username, email, password } = req.body;
+    const registerUser = await usersModel.create({
+      name,
+      username,
+      email,
+      password,
+    });
+
+    if (registerUser) {
+      return res.status(200).json("User created successfully");
+    } else {
+      return res.status(400).json({ message: "Data is Note Valid!!" });
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(500).json("Server Error");
+  }
 };

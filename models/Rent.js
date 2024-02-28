@@ -1,17 +1,14 @@
 const db = require("./../db.json");
-const fs = require("fs");
+const { dbConnection } = require("../configs/db");
 
-const add = (newRent) => {
-  return new Promise((resolve, reject) => {
-    db.rents.push(newRent);
+const add = async (newRent) => {
+  const db = await dbConnection();
+  const rentsCollection = db.collection(rents);
+  const result = await rentsCollection.insertOne(newRent);
 
-    fs.writeFile(`${process.cwd()}/db.json`, JSON.stringify(db), (err) => {
-      if (err) {
-        reject(err);
-      }
-      resolve({ message: "Book Reserved Successfully" });
-    });
-  });
+  if (result.acknowledged) {
+    return { message: "Book Reserved Successfully" };
+  }
 };
 
 module.exports = {

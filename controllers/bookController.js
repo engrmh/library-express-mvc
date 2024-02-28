@@ -1,77 +1,144 @@
-const url = require("url");
-const BookModel = require("./../models/Book");
-const crypto = require("crypto");
+const booksModel = require("../models/books");
+const { isValidObjectId } = require("mongoose");
 
-const getAll = async (req, res) => {
-  const book = await BookModel.find();
-
-  res.writeHead(200, { "Content-Type": "application/json" });
-  res.write(JSON.stringify(book));
-  res.end();
+exports.getAll = async (req, res) => {
+  try {
+    const allBooks = await booksModel.find({}).lean();
+    res.status(200).json({ message: "OK", datas: allBooks });
+  } catch (err) {
+    res.status(500).json("Server Error");
+  }
 };
 
-const removeOne = async (req, res) => {
-  const parsedUrl = url.parse(req.url, true);
-  const bookID = parsedUrl.query.id;
+exports.getOne = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const isValidID = isValidObjectId(id);
 
-  const removeBook = await BookModel.remove(bookID);
-  res.writeHead(200, { "Content-Type": "application/json" });
-  res.write(JSON.stringify(removeBook));
-  res.end();
+    if (!isValidID) {
+      res.status(400).json({ message: "Invalid Book ID" });
+    }
+
+    const book = await booksModel.findOne({ _id: id });
+    res.status(200).json({ message: "OK", data: book });
+  } catch (err) {
+    res.status(500).json("Server Error");
+  }
 };
 
-const addBook = async (req, res) => {
-  let book = "";
+exports.deleteOne = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const isValidID = isValidObjectId(id);
 
-  req.on("data", (data) => {
-    book = book + data.toString();
-  });
+    if (!isValidID) {
+      res.status(400).json({ message: "Invalid Book ID" });
+    }
 
-  req.on("end", async () => {
-    const newBook = { id: crypto.randomUUID(), ...JSON.parse(book), free: 1 };
-    const addBook = await BookModel.add(newBook);
+    const result = await booksModel.deleteOne({ _id: id });
 
-    res.writeHead(201, { "Content-Type": "application/json" });
-    res.write(JSON.stringify(addBook));
-    res.end();
-  });
+    if (result) {
+      res.status(200).json({ message: "Book Deleted Successfully" });
+    } else {
+      res.status(404).json({ message: "Book Not Found" });
+    }
+  } catch (err) {
+    res.status(500).json("Server Error");
+  }
 };
 
-const bookBack = async (req, res) => {
-  const parsedUrl = url.parse(req.url, true);
-  const bookID = parsedUrl.query.id;
+exports.addNewBook = async (req, res) => {
+  try {
+    const { title, author, price } = req.body;
 
-  const backBookRes = await BookModel.backing(bookID);
+    const result = await booksModel.create({
+      title,
+      author,
+      price,
+      free: 1,
+    });
 
-  res.writeHead(200, { "Content-Type": "application/json" });
-  res.write(JSON.stringify(backBookRes));
-  res.end();
+    if (result) {
+      res.status(200).json({ message: "Book Created Successfully" });
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(500).json("Server Error");
+  }
 };
 
-const editBook = async (req, res) => {
-  const parsedUrl = url.parse(req.url, true);
-  const bookID = parsedUrl.query.id;
+exports.backingBook = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const isValidID = isValidObjectId(id);
 
-  let bookNewInfos = "";
+    if (!isValidID) {
+      res.status(400).json({ message: "Invalid Book ID" });
+    }
 
-  req.on("data", (data) => {
-    bookNewInfos = bookNewInfos + data.toString();
-  });
+    const result = await booksModel.updateOne(
+      { _id: id },
+      { $set: { free: 1 } }
+    );
 
-  req.on("end", async () => {
-    const reqBody = JSON.parse(bookNewInfos);
-
-    const editingBook = await BookModel.edit(bookID, reqBody);
-    res.writeHead(200, { "Content-Type": "application/json" });
-    res.write(JSON.stringify(editingBook));
-    res.end();
-  });
+    if (result) {
+      res.status(200).json({ message: "Book Backed Successfully" });
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(500).json("Server Error");
+  }
 };
 
-module.exports = {
-  getAll,
-  removeOne,
-  addBook,
-  bookBack,
-  editBook,
+exports.updateBook = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const isValidID = isValidObjectId(id);
+
+    if (!isValidID) {
+      res.status(400).json({ message: "Invalid Book ID" });
+    }
+    const { title, author, price } = req.body;
+
+    const result = await booksModel.updateOne(
+      { _id: id },
+      {
+        $set: {
+          title,
+          author,
+          price,
+        },
+      }
+    );
+
+    if (result) {
+      res.status(200).json({ message: "Book Edited Successfully" });
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(500).json("Server Error");
+  }
+};
+
+exports.setRent = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const isValidID = isValidObjectId(id);
+
+    if (!isValidID) {
+      res.status(400).json({ message: "Invalid Book ID" });
+    }
+
+    const result = await booksModel.updateOne(
+      { _id: id },
+      { $set: { free: 0 } }
+    );
+
+    if (result) {
+      res.status(200).json({ message: "Book Backed Successfully" });
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(500).json("Server Error");
+  }
 };
